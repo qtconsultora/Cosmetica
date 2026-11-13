@@ -54,9 +54,9 @@ const qtyOf=id=>Object.keys(cart).filter(k=>k.split("|")[0]==id).reduce((a,k)=>a
 const gqty=g=>g.ids.reduce((a,id)=>a+qtyOf(id),0);
 const txt=p=>(p.title+" "+p.desc+" "+p.codes.join(" ")+" "+p.variants.map(v=>v.label).join(" ")).toLowerCase();
 const vlabel=(p,vi)=>{const v=p.variants[vi];return v?((v.label?v.label+" ":"")+"("+v.code+")"):""};
-window.HD=window.HD||{};const hdCh={};const imgSrc=i=>HD[i]||GROUPS[i].img;
+const HDOK={};const hdUrl=i=>"hd/"+String(i+1).padStart(4,"0")+".jpg";const imgSrc=i=>HDOK[i]||GROUPS[i].img;
 function refreshImgs(){if(curG<0)return;const a=document.querySelector("#mbox .ph img");if(a)a.src=imgSrc(curG);if($("#zoom").classList.contains("open"))$("#zi").src=imgSrc(curG)}
-function hdLoad(i){const c=Math.floor(i/40);if(hdCh[c])return;hdCh[c]=1;const s=document.createElement("script");s.src="hd/c"+c+".js";s.onload=()=>{hdCh[c]=2;if(curG>=0&&Math.floor(curG/40)===c)refreshImgs()};s.onerror=()=>{hdCh[c]=0};document.head.appendChild(s)}
+function hdLoad(i){if(i<0||i>=GROUPS.length||HDOK[i]||location.protocol==="blob:")return;const im=new Image();im.onload=()=>{HDOK[i]=hdUrl(i);if(i===curG)refreshImgs()};im.src=hdUrl(i)}
 let curG=-1;
 function visible(){const q=$("#q").value.toLowerCase().trim(),emp=$("#emp").value;
  return GROUPS.map((g,i)=>({g,i})).filter(({g})=>(!emp||g.emp===emp)&&(!q||g.ids.some(id=>txt(byId(id)).includes(q))))}
@@ -80,7 +80,7 @@ function openG(i){curG=i;const g=GROUPS[i],q=$("#q").value.toLowerCase().trim();
  const sib=(d)=>{for(let j=i+d;j>=0&&j<GROUPS.length;j+=d)if(GROUPS[j].emp===g.emp)return j;return -1},pv=sib(-1),nx=sib(1);
  $("#mbox").innerHTML=`<div class="ph"><img src="${imgSrc(i)}" alt="" onclick="openZ()"><button class="lupa" onclick="openZ()">🔍 Ampliar</button>${pv>=0?`<button class="nav l" onclick="openG(${pv})" title="Página anterior">‹</button>`:""}${nx>=0?`<button class="nav r" onclick="openG(${nx})" title="Página siguiente">›</button>`:""}</div>
  <div class="rows"><h3>${g.emp} · pág. ${g.page}</h3><div class="mut">Elegí color, tamaño o presentación de lo que ves en la foto. Si la foto sigue, usá las flechas.</div>${g.ids.map(id=>rowHTML(id,q)).join("")}</div>`;
- $("#modal").classList.add("open");hdLoad(i)}
+ $("#modal").classList.add("open");hdLoad(i);hdLoad(i+1);hdLoad(i-1)}
 
 let zz=1;const ZL=[1,1.5,2,3,4,6];let zi=0;
 function zapply(keep){const c=$("#zc"),im=$("#zi");const fx=keep?(c.scrollLeft+c.clientWidth/2)/Math.max(im.clientWidth,1):.5,fy=keep?(c.scrollTop+c.clientHeight/2)/Math.max(im.clientHeight,1):0;
